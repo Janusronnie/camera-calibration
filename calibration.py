@@ -32,9 +32,10 @@ for fname in images:
         # Draw and display the corners
         img = cv2.drawChessboardCorners(img, (9,6), corners2,ret)
         cv2.imshow('img',img)
+        # the showing time 500ms
         cv2.waitKey(500)
 
-        # mtx: the intrinsic matrix of camera
+        # mtx: the intrinsic matrix of camera (contains focal length and the center point of the camera)
         # rvecs: rotation parameters
         # tvecss: translation parameters
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
