@@ -3,27 +3,33 @@ import cv2
 import cv2.aruco as aruco
 import math
 
-# Define Aruco Dictionary
-aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_1000)
-parameters = aruco.DetectorParameters_create()
+
 marker_size = 3.6  # cm
 
 # Marker IDs
-top_right_id = 12 #12
-top_left_id = 11 #11
-bottom_left_id = 10 # 10
-bottom_right_id = 13 # 13
+top_right_id = 12
+top_left_id = 11
+bottom_left_id = 10
+bottom_right_id = 13
+end_effector_id = 14
+center_id = 0
 
 # --- Get the camera calibration path
 calib_path = ""
 camera_matrix = np.load(calib_path + 'camera_mtx.npy')
 camera_distortion = np.load(calib_path + 'dist_mtx.npy')
 
+# Define Aruco Dictionary
+aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_1000)
+parameters = aruco.DetectorParameters_create()
+
 # Lists for storing marker positions
 top_right = []
 top_left = []
 bottom_left = []
 bottom_right = []
+end_effector = []
+center = []
 
 # --- 180 deg rotation matrix around the x axis
 R_flip = np.zeros((3, 3), dtype=np.float32)
@@ -40,11 +46,8 @@ def isRotationMatrix(R):
 
 def rotationMatrixToEulerAngles(R):
     assert (isRotationMatrix(R))
-
     sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
-
     singular = sy < 1e-6
-
     if not singular:
         x = math.atan2(R[2, 1], R[2, 2])
         y = math.atan2(-R[2, 0], sy)
@@ -53,7 +56,6 @@ def rotationMatrixToEulerAngles(R):
         x = math.atan2(-R[1, 2], R[1, 1])
         y = math.atan2(-R[2, 0], sy)
         z = 0
-
     return np.array([x, y, z])
 
 # --- Capture the videocamera (this may also be a video or a picture)
@@ -76,40 +78,58 @@ while True:
     # -- Find all the aruco markers in the image
     corners, ids, rejected = aruco.detectMarkers(image=gray, dictionary=aruco_dict, parameters=parameters,
                                                  cameraMatrix=camera_matrix, distCoeff=camera_distortion)
-    # for i in id_to_find:
-    if ids is not None:# and ids == id_to_find:
-        # -- ret = [rvec, tvec, ?]
-        # -- array of rotation and position of each marker in camera frame
-        # -- rvec = [[rvec_1], [rvec_2], ...]    attitude of the marker respect to camera frame
-        # -- tvec = [[tvec_1], [tvec_2], ...]    position of the marker in camera frame
+
+    if ids is not None:
+
         rvecs, tvecs, _objPonits = aruco.estimatePoseSingleMarkers(corners, marker_size, camera_matrix, camera_distortion)
 
         for i in range(ids.size):
-            # Draw reference frame for the marker
 
             # Save end-effector marker pose
+            if ids[i] == end_effector_id:
+                end_effector = tvecs[i]
+                str_position = "end_effector Position x=%4.2f  y=%4.2f  z=%4.2f" % (end_effector[0, 0], end_effector[0, 1], end_effector[0 ,2])
+                cv2.putText(frame, str_position, (0, 50), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
+                # -- Obtain the rotation matrix tag->camera
+                R_ct = np.matrix(cv2.Rodrigues(rvecs[i])[0])
+                R_tc = R_ct.T
+
+                # -- Get the attitude in terms of euler 321 (Needs to be flipped first)
+                roll_marker, pitch_marker, yaw_marker = rotationMatrixToEulerAngles(R_flip * R_tc)
+
+                str_attitude = "MARKER Attitude r=%4.0f  p=%4.0f  y=%4.0f" % (
+                    math.degrees(roll_marker), math.degrees(pitch_marker),
+                    math.degrees(yaw_marker))
+                cv2.putText(frame, str_attitude, (0, 100), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
+
+            if ids[i] == center_id:
+                center = tvecs[i]
+                str_position = "center Position x=%4.2f  y=%4.2f  z=%4.2f" % (center[0, 0], center[0, 1], center[0 ,2])
+                cv2.putText(frame, str_position, (0, 150), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
             if ids[i] == top_right_id:
                 top_right = tvecs[i]
                 str_position = "top_right Position x=%4.2f  y=%4.2f  z=%4.2f" % (top_right[0, 0], top_right[0, 1], top_right[0, 2])
-                cv2.putText(frame, str_position, (0, 100), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            # Save object marker pose
+                cv2.putText(frame, str_position, (0, 200), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
             if ids[i] == top_left_id:
                 top_left = tvecs[i]
                 # obj_marker[2] = obj_marker[2] - 5.5  ###Since Object height in z is 110 mm. Subtracting 55 mm brings center to object center
                 str_position = "top_left Position x=%4.2f  y=%4.2f  z=%4.2f" % (top_left[0, 0], top_left[0, 1], top_left[0, 2])
-                cv2.putText(frame, str_position, (0, 200), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            # Save finger1 Dist marker pose
+                cv2.putText(frame, str_position, (0, 250), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
             if ids[i] == bottom_left_id:
                 bottom_left = tvecs[i]
                 str_position = "bottom_left Position x=%4.2f  y=%4.2f  z=%4.2f" % (bottom_left[0, 0], bottom_left[0, 1], bottom_left[0, 2])
                 cv2.putText(frame, str_position, (0, 300), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            # Save finger1 tip pose
+
             if ids[i] == bottom_right_id:
                 bottom_right = tvecs[i]
                 str_position = "bottom_right Position x=%4.2f  y=%4.2f  z=%4.2f" % (bottom_right[0, 0], bottom_right[0, 1], bottom_right[0 ,2])
-                cv2.putText(frame, str_position, (0, 400), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                cv2.putText(frame, str_position, (0, 350), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-            aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 2)
+            aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
 
         aruco.drawDetectedMarkers(frame, corners, ids)
 
