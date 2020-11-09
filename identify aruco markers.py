@@ -12,6 +12,7 @@ top_left_id = 11
 bottom_left_id = 10
 bottom_right_id = 13
 end_effector_id = 14
+palm_id = 1
 center_id = 0
 
 # --- Get the camera calibration path
@@ -30,6 +31,7 @@ bottom_left = []
 bottom_right = []
 end_effector = []
 center = []
+palm = []
 
 # --- 180 deg rotation matrix around the x axis
 R_flip = np.zeros((3, 3), dtype=np.float32)
@@ -98,40 +100,56 @@ while True:
                 # -- Get the attitude in terms of euler 321 (Needs to be flipped first)
                 roll_marker, pitch_marker, yaw_marker = rotationMatrixToEulerAngles(R_flip * R_tc)
 
-                str_attitude = "MARKER Attitude r=%4.0f  p=%4.0f  y=%4.0f" % (
+                str_attitude = "end_effector Euler Angle r=%4.0f  p=%4.0f  y=%4.0f" % (
                     math.degrees(roll_marker), math.degrees(pitch_marker),
                     math.degrees(yaw_marker))
                 cv2.putText(frame, str_attitude, (0, 100), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
+            if ids[i] == palm_id:
+                palm = tvecs[i]
+                str_position = "palm Position x=%4.2f  y=%4.2f  z=%4.2f" % (palm[0, 0], palm[0, 1], palm[0 ,2])
+                cv2.putText(frame, str_position, (0, 150), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
+                # -- Obtain the rotation matrix tag->camera
+                R_ct = np.matrix(cv2.Rodrigues(rvecs[i])[0])
+                R_tc = R_ct.T
+
+                # -- Get the attitude in terms of euler 321 (Needs to be flipped first)
+                roll_marker, pitch_marker, yaw_marker = rotationMatrixToEulerAngles(R_flip * R_tc)
+
+                str_attitude = "palm Euler Angle r=%4.0f  p=%4.0f  y=%4.0f" % (
+                    math.degrees(roll_marker), math.degrees(pitch_marker),
+                    math.degrees(yaw_marker))
+                cv2.putText(frame, str_attitude, (0, 200), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
             if ids[i] == center_id:
                 center = tvecs[i]
                 str_position = "center Position x=%4.2f  y=%4.2f  z=%4.2f" % (center[0, 0], center[0, 1], center[0 ,2])
-                cv2.putText(frame, str_position, (0, 150), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
+                cv2.putText(frame, str_position, (0, 250), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
             if ids[i] == top_right_id:
                 top_right = tvecs[i]
                 str_position = "top_right Position x=%4.2f  y=%4.2f  z=%4.2f" % (top_right[0, 0], top_right[0, 1], top_right[0, 2])
-                cv2.putText(frame, str_position, (0, 200), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
+                cv2.putText(frame, str_position, (0, 300), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
             if ids[i] == top_left_id:
                 top_left = tvecs[i]
                 # obj_marker[2] = obj_marker[2] - 5.5  ###Since Object height in z is 110 mm. Subtracting 55 mm brings center to object center
                 str_position = "top_left Position x=%4.2f  y=%4.2f  z=%4.2f" % (top_left[0, 0], top_left[0, 1], top_left[0, 2])
-                cv2.putText(frame, str_position, (0, 250), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
+                cv2.putText(frame, str_position, (0, 350), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
             if ids[i] == bottom_left_id:
                 bottom_left = tvecs[i]
                 str_position = "bottom_left Position x=%4.2f  y=%4.2f  z=%4.2f" % (bottom_left[0, 0], bottom_left[0, 1], bottom_left[0, 2])
-                cv2.putText(frame, str_position, (0, 300), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
+                cv2.putText(frame, str_position, (0, 400), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
             if ids[i] == bottom_right_id:
                 bottom_right = tvecs[i]
                 str_position = "bottom_right Position x=%4.2f  y=%4.2f  z=%4.2f" % (bottom_right[0, 0], bottom_right[0, 1], bottom_right[0 ,2])
-                cv2.putText(frame, str_position, (0, 350), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                cv2.putText(frame, str_position, (0, 450), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
 
-            aruco.drawAxis(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 3)
-
-        aruco.drawDetectedMarkers(frame, corners, ids)
+        aruco.drawDetectedMarkers(frame, corners)
 
     # --- Display the frame
     cv2.imshow('frame', frame)
