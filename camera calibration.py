@@ -18,7 +18,7 @@ img_points = [] # 2D points in image plane
 #Square size
 size = 0.025 #m or 25 cm
 
-images = glob.glob('C:/Users/35552/Desktop/Courses at OSU/ROB514/Final Project/camera calibration/image_processing/*.jpg')
+images = glob.glob('image_processing/*.jpg')
 
 for fname in images:
 	img = cv2.imread(fname)
@@ -49,14 +49,6 @@ for fname in images:
 		print('Distortion Matrix:')
 		print(dist)
 		np.save('dist_mtx.npy', dist)
-
-		print('Rotation Matrix:')
-		print(rvecs)
-		np.save('rotation_mtx.npy', rvecs)
-
-		print('Translation Matrix:')
-		print(mtx)
-		np.save('translation_mtx.npy', tvecs)
 
 		h, w = img.shape[:2]
 		newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
