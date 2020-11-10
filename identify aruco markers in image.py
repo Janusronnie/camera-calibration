@@ -16,6 +16,7 @@ end_effector_id = 14
 palm_id = 1
 center_id = 0
 
+# Load the dictionary of the ArUco Markers
 aruco_dict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
 parameters = aruco.DetectorParameters_create()
 
@@ -24,10 +25,10 @@ calib_path = ""
 camera_matrix = np.load(calib_path + 'camera_mtx.npy')
 camera_distortion = np.load(calib_path + 'dist_mtx.npy')
 
+# undistort image
 h, w = img.shape[:2]
 newcameramtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, camera_distortion, (w, h), 1, (w, h))
 
-# undistort
 dst = cv2.undistort(img, camera_matrix, camera_distortion, None, newcameramtx)
 
 # crop the image
@@ -75,9 +76,17 @@ def read_inf(ids, i):
     R_flip[1, 1] = -1.0
     R_flip[2, 2] = -1.0
 
-    trans = tvecs[i]
+    #tranfermation matrix
+    tranf = np.eye(4)
+    tranf[1, 1] = -1
+    tranf[2, 2] = -1
+    tranf[2, 3] = 80
+
+    pos = np.insert(tvecs[i],[3], 1, axis=None)
+    trans = np.dot(tranf, pos)
+
     str_position = name + " Position x=%4.1f  y=%4.1f  z=%4.1f" % (
-        trans[0, 0], trans[0, 1], trans[0, 2])
+        trans[0], trans[1], trans[2])
 
     # -- Obtain the rotation matrix tag->camera
     R_ct = np.matrix(cv2.Rodrigues(rvecs[i])[0])
@@ -150,4 +159,3 @@ cv2.imwrite('result.png', out)
 cv2.imshow("out",out)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
