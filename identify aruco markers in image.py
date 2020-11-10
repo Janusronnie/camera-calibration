@@ -24,6 +24,16 @@ calib_path = ""
 camera_matrix = np.load(calib_path + 'camera_mtx.npy')
 camera_distortion = np.load(calib_path + 'dist_mtx.npy')
 
+h, w = img.shape[:2]
+newcameramtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, camera_distortion, (w, h), 1, (w, h))
+
+# undistort
+dst = cv2.undistort(img, camera_matrix, camera_distortion, None, newcameramtx)
+
+# crop the image
+x, y, w, h = roi
+img = dst[y:y + h, x:x + w]
+
 # Detect the markers.
 corners, ids, rejected = aruco.detectMarkers(image=img, dictionary=aruco_dict, parameters=parameters,
                                              cameraMatrix=camera_matrix, distCoeff=camera_distortion)
@@ -140,3 +150,4 @@ cv2.imwrite('result.png', out)
 cv2.imshow("out",out)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
