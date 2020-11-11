@@ -16,7 +16,7 @@ object_points = [] # 3D point in real world space
 img_points = [] # 2D points in image plane
 
 #Square size
-size = 0.025 #m or 25 cm
+size = 0.025 #m
 
 images = glob.glob('image_processing/*.jpg')
 
