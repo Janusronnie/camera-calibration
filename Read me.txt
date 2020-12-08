@@ -1,0 +1,31 @@
+Files description:
+
+# EE_Palm folder: The folder of the calculation input images for "EE_Palm_Transform.py"
+
+# final folder: The folder of the algorithms which are used to calculate the error between the robot frame and the world frame
+
+# image_processing folder: The folder of the processing images for "camera calculation.py"
+
+# result folder: The folder of result data files and images of "identify aruco markers in image.py"
+
+# Validation folder: The folder of the validation images
+
+# 6.jpg\9.jpg\10.jpg\2020-12-01-133130.jpg\2020-12-01-133142.jpg\2020-12-01-133201.jpg\2020-12-01-140632.jpg: The input images of "identify aruco markers in image.py"
+
+# calibresult.png: The resulting image of "camera calculation.py"
+
+# camera calculation.py: The algorithm of camera calibration.
+
+# camera_mtx.npy: The file which stored the camera matrix of the web-camera.
+
+# dist_mtx.npy: The file which stored the distortion coefficients of the web-camera.
+
+# EE_Palm_Transform.py: The algorithm for calculating the transform matrix from the end effector to the palm
+
+# EE_to_Palm_Rotation_Matrix.csv: The result of "EE_Palm_Transform.py" which contains the rotation matrix
+
+# EE_to_Palm_Translation_Matrix.csv: The result of "EE_Palm_Transform.py" which contains the translation matrix
+
+# identify aruco markers in image.py: The algorithm to read the information of the ArUco Markers
+
+# tranf_world_to_camera.csv: The result of "identify aruco markers in image.py" which contains the transform matrix from the world frame to the camera frame.
